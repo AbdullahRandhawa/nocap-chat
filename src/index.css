@@ -1,0 +1,27 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Lucida Sans", "Lucida Sans Regular", "Lucida Grande",
+    "Lucida Sans Unicode", Geneva, Verdana, sans-serif;
+}
+
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* background-image: url("/bg.jpg"); */
+  background-color: rgba(0, 0, 0, 0.575);
+  height: 100vh;
+}
+
+.container {
+  width: 90vw;
+  height: 90vh;
+  background-color: rgba(24, 23, 44, 0.7);
+  backdrop-filter: blur(18px);
+  border-radius: 12px;
+  display: flex;
+  overflow: hidden;
+  color: white;
+}

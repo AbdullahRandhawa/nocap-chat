@@ -1,0 +1,83 @@
+.adduser {
+    width: max-content;
+    height: max-content;
+    padding: 20px;
+    border-radius: 10px;
+    background-color: rgb(37, 37, 53);
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: auto;
+    position: absolute;
+
+    form {
+        display: flex;
+        gap: 10px;
+
+
+        input {
+            border: none;
+            padding: 7px;
+            outline: none;
+            border-radius: 5px;
+        }
+
+        button {
+            outline: none;
+            border: none;
+            border-radius: 5px;
+            padding: 7px 20px;
+            cursor: pointer;
+            background-color: rgb(24, 86, 179);
+
+            &:hover {
+                background-color: rgb(105, 139, 190);
+            }
+
+        }
+    }
+
+    .user {
+        display: flex;
+        margin-top: 20px;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px;
+
+
+
+
+        .detail {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 10px;
+
+
+
+
+            img {
+                width: 40px;
+                height: 40px;
+                object-fit: cover;
+                border-radius: 50%;
+            }
+        }
+
+        button {
+            outline: none;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+            background-color: rgb(24, 86, 179);
+
+            &:hover {
+                background-color: rgb(105, 139, 190);
+            }
+
+        }
+
+    }
+}
