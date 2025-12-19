@@ -1,6 +1,10 @@
 import { useState } from "react"
 import { toast } from "react-toastify";
 import "./login.css"
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+import { auth, db } from "../../lib/firebase";
+import { doc, setDoc } from "firebase/firestore";
+import upload from "../../lib/cloudinary";
 
 const Login = () => {
 
@@ -9,6 +13,8 @@ const Login = () => {
         file: null,
         url: "",
     })
+
+    const [loading, setLoading] = useState(false)
 
 
     const handleAvatar = (e) => {
@@ -20,32 +26,95 @@ const Login = () => {
         }
     }
 
-    const handleLogin = (e) => {
+    const handleRegister = async (e) => {
         e.preventDefault()
-        toast.warn("Hello")
+        setLoading(true)
+
+        const formData = new FormData(e.target)
+
+        const { username, email, password } = Object.fromEntries(formData.entries())
+
+
+        try {
+            const res = await createUserWithEmailAndPassword(auth, email, password)
+
+            let imgUrl = "";
+
+            if (avatar.file) {
+                toast.info("Uploading image... hang tight!");
+                imgUrl = await upload(avatar.file);
+            }
+
+            await setDoc(doc(db, "users", res.user.uid), {
+                username,
+                email,
+                id: res.user.uid,
+                avatar: imgUrl,
+                blocked: [],
+            })
+
+            await setDoc(doc(db, "userchats", res.user.uid), {
+                chats: []
+            })
+
+
+
+            toast.success("Account created! You can Login now!")
+
+        } catch (err) {
+            toast.error(err.message)
+        } finally {
+            setLoading(false)
+        }
+
+
+
+    }
+
+
+
+    const handleLogin = async (e) => {
+        e.preventDefault()
+        setLoading(true)
+
+        const formData = new FormData(e.target)
+
+        const { email, password } = Object.fromEntries(formData.entries())
+
+        try {
+            await signInWithEmailAndPassword(auth, email, password)
+
+        } catch (err) {
+            toast.error(err.message)
+        } finally {
+            setLoading(false)
+        }
+
+
+
     }
 
     return (
         <div className="login">
             <div className="item">
-                <h2>Welcom Back</h2>
-                <form action="" onSubmit={handleLogin}>
+                <h2>Welcome Back</h2>
+                <form onSubmit={handleLogin}>
                     <input type="email" placeholder="Email" name="email" />
                     <input type="password" placeholder="Password" name="password" />
-                    <button>Sign In</button>
+                    <button disabled={loading}> {loading ? "Loading" : "Log In"} </button>
                 </form>
 
             </div>
             <div className="separator"></div>
             <div className="item">
                 <h2>Create an Account</h2>
-                <form action="">
+                <form onSubmit={handleRegister}>
                     <label htmlFor="file"><img src={avatar.url || "./avatar.png"} alt="" />Profile Image</label>
                     <input type="file" id="file" style={{ display: "none" }} onChange={handleAvatar} />
                     <input type="text" placeholder="username" name="username" />
                     <input type="email" placeholder="Email" name="email" />
                     <input type="password" placeholder="Password" name="password" />
-                    <button>Sign Up</button>
+                    <button disabled={loading}> {loading ? "Loading" : "Sign Up"} </button>
                 </form>
 
             </div>

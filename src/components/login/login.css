@@ -63,16 +63,21 @@
                 &:hover {
                     background-color: rgb(105, 139, 190, 0.5);
                 }
+
+                &:disabled {
+                    background-color: rgb(105, 139, 190, 0.5);
+                }
             }
-
-
         }
 
+
     }
 
-    .separator {
-        height: 80%;
-        width: 2px;
-        background-color: rgb(17, 16, 31);
-    }
+}
+
+.separator {
+    height: 80%;
+    width: 2px;
+    background-color: rgb(17, 16, 31);
+}
 }
