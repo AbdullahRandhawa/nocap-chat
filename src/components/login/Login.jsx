@@ -57,8 +57,7 @@ const Login = () => {
                 chats: []
             })
 
-
-
+            console.log("User document created successfully");
             toast.success("Account created! You can Login now!")
 
         } catch (err) {
