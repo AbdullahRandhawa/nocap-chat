@@ -1,3 +1,39 @@
-.container {
-    display: flex;
+/* Responsive Layout Styles */
+@media (max-width: 768px) {
+    .container {
+        width: 100vw;
+        height: 100vh;
+        border-radius: 0;
+        box-shadow: none;
+        border: none;
+        /* One panel at a time via React state — just fill the screen */
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    /* Each panel fills the screen; min-height:0 lets inner scroll work */
+    .container>.list,
+    .container>.chat,
+    .container>.detail {
+        flex: 1 1 auto !important;
+        width: 100vw !important;
+        min-height: 0 !important;
+        max-height: 100vh !important;
+        border: none !important;
+        border-radius: 0 !important;
+    }
+}
+
+/* Tablet Layout styles */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .container {
+        width: 95vw;
+        height: 95vh;
+    }
+
+    /* Hide the right sidebar (Detail) on tablet screen sizes to give more room to Chat */
+    .container>.detail {
+        display: none !important;
+    }
 }

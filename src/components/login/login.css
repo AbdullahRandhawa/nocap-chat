@@ -4,13 +4,21 @@
     display: flex;
     gap: 100px;
     align-items: center;
+    background-color: var(--bg-main);
+    color: var(--text-dark);
 
     .item {
         flex: 1;
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 20px;
+        gap: 30px;
+
+        h2 {
+            font-size: 2rem;
+            color: var(--text-dark);
+            font-family: var(--font-display);
+        }
 
         form {
             display: flex;
@@ -18,15 +26,28 @@
             gap: 20px;
             align-items: center;
             justify-content: center;
+            width: 100%;
+            max-width: 350px;
 
             input {
-                border: none;
-                color: white;
-                border-radius: 5px;
-                padding: 8px 15px;
+                width: 100%;
+                border: 1px solid var(--bg-tertiary);
+                color: var(--text-dark);
+                border-radius: var(--radius-sm);
+                padding: 12px 15px;
                 outline: none;
-                font-size: 14px;
-                background-color: rgba(11, 11, 27, 0.6);
+                font-size: 0.95rem;
+                background-color: var(--bg-main);
+                transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+
+                &:focus {
+                    border-color: var(--text-muted);
+                    box-shadow: 0 0 0 2px rgba(34, 34, 34, 0.1);
+                }
+
+                &::placeholder {
+                    color: var(--text-light);
+                }
             }
 
             label {
@@ -34,16 +55,22 @@
                 align-items: center;
                 justify-content: space-between;
                 cursor: pointer;
-                text-decoration: underline;
                 gap: 20px;
+                color: var(--text-muted);
+                font-size: 0.9rem;
+                font-weight: 500;
+                transition: color var(--transition-fast);
+
+                &:hover {
+                    color: var(--text-dark);
+                }
 
                 img {
-                    width: 70px;
-                    height: 70px;
-                    border-radius: 5px;
+                    width: 60px;
+                    height: 60px;
+                    border-radius: 50%;
                     object-fit: cover;
-                    opacity: 0.7;
-
+                    border: 2px solid var(--bg-tertiary);
                 }
             }
 
@@ -51,32 +78,50 @@
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                width: 60%;
-                padding: 8px;
+                width: 100%;
+                padding: 12px;
                 color: white;
-                font-weight: 500;
+                font-weight: 600;
                 border: 0;
                 cursor: pointer;
-                border-radius: 5px;
-                background-color: rgb(105, 139, 190);
+                border-radius: var(--radius-sm);
+                background-color: var(--primary);
+                font-size: 1rem;
+                transition: background-color var(--transition-fast), transform var(--transition-fast);
 
-                &:hover {
-                    background-color: rgb(105, 139, 190, 0.5);
+                &:hover:not(:disabled) {
+                    background-color: var(--primary-hover);
+                    transform: scale(0.98);
                 }
 
                 &:disabled {
-                    background-color: rgb(105, 139, 190, 0.5);
+                    background-color: var(--bg-tertiary);
+                    color: var(--text-muted);
+                    cursor: not-allowed;
                 }
             }
         }
-
-
     }
-
 }
 
 .separator {
-    height: 80%;
-    width: 2px;
-    background-color: rgb(17, 16, 31);
+    height: 60%;
+    width: 1px;
+    background-color: var(--bg-tertiary);
+    opacity: 0.5;
+}
+
+/* Make it responsive for mobile */
+@media (max-width: 768px) {
+    .login {
+        flex-direction: column;
+        gap: 40px;
+        padding: 40px 20px;
+        justify-content: center;
+        overflow-y: auto;
+    }
+
+    .separator {
+        display: none;
+    }
 }

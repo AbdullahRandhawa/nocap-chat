@@ -6,7 +6,7 @@ import { db } from "../../../lib/firebase"
 import { useUserStore } from "../../../lib/userStore"
 import { useChatStore } from "../../../lib/chatStore"
 
-const Chatlist = () => {
+const Chatlist = ({ setMobileView }) => {
     const [addMode, setAddMode] = useState(false)
     const [chats, setChats] = useState([])
     const [input, setInput] = useState("")
@@ -65,6 +65,7 @@ const Chatlist = () => {
                 chats: userChats,
             });
             changeChat(chat.chatId, chat.user);
+            if (setMobileView) setMobileView("chat"); // Trigger conditional render on mobile
         } catch (err) {
             console.error("Firebase update failed:", err);
         }
@@ -84,10 +85,8 @@ const Chatlist = () => {
                     <img src="./search.png" alt="" />
                     <input type="text" placeholder="search..." onChange={(e) => setInput(e.target.value)} />
                 </div>
-                <div className="add">
-                    <img src={addMode ? "./minus.png" : "./plus.png"} alt=""
-                        onClick={() => setAddMode(prev => !prev)}
-                    />
+                <div className="add" onClick={() => setAddMode(prev => !prev)}>
+                    <img src={addMode ? "./minus.png" : "./plus.png"} alt="" />
                 </div>
             </div>
             {filteredChat.map((chat) => (

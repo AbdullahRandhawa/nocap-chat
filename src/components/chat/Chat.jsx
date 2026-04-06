@@ -7,7 +7,7 @@ import { useChatStore } from "../../lib/chatStore"
 import { useUserStore } from "../../lib/userStore";
 import upload from "../../lib/cloudinary"
 
-const Chat = () => {
+const Chat = ({ setMobileView }) => {
 
     const [chat, setChat] = useState()
     const [open, setOpen] = useState(false)
@@ -22,12 +22,23 @@ const Chat = () => {
     const { chatId, user, isCurrentUserBlocked, isReceiverBlocked } = useChatStore()
 
     const endRef = useRef(null)
+    const textareaRef = useRef(null)
 
     useEffect(() => {
         endRef.current?.scrollIntoView({ behavior: "smooth" })
     }, [chat?.messages])
 
+    // Auto-grow textarea like WhatsApp
     useEffect(() => {
+        if (textareaRef.current) {
+            textareaRef.current.style.height = "auto";
+            textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 150) + "px";
+        }
+    }, [text])
+
+    useEffect(() => {
+        if (!chatId) return;
+
         const unSub = onSnapshot(
             doc(db, "chats", chatId),
             (res) => {
@@ -133,23 +144,35 @@ const Chat = () => {
     };
 
 
+    if (!chatId) {
+        return (
+            <div className="chat" style={{ justifyContent: 'center', alignItems: 'center' }}>
+                <p style={{ color: 'var(--text-muted)', fontSize: '1.2rem' }}>Select a chat to start messaging.</p>
+            </div>
+        );
+    }
+
     return (
         <div className="chat">
             <div className="top">
+                {/* Back button on the far left — mobile only */}
+                <button className="mobileBackButton" onClick={() => setMobileView && setMobileView("list")}>
+                    ←
+                </button>
+
+                {/* User info in the center */}
                 <div className="user">
                     <img src={user?.avatar || "./avatar.png"} alt="" />
                     <div className="texts">
-                        <span> {user?.username} </span>
-                        {/* <p>Bla Blalalalalalal bla</p> */}
+                        <span>{user?.username}</span>
                     </div>
                 </div>
-                {/* <div className="icons">
-                    <img src="./phone.png" alt="" />
-                    <img src="./video.png" alt="" />
-                    <img src="./info.png" alt="" />
-                </div> */}
-            </div>
 
+                {/* Info button on the far right — mobile only */}
+                <button className="mobileInfoButton" onClick={() => setMobileView && setMobileView("detail")}>
+                    ⋮
+                </button>
+            </div>
 
             <div className="center">
                 {chat?.messages?.map((message) => (
@@ -164,7 +187,6 @@ const Chat = () => {
                                             display: "flex",
                                             backgroundColor: "white",
                                             padding: "10px 20px",
-
                                             borderRadius: "10px",
                                             fontSize: "14px",
                                             color: "black",
@@ -189,11 +211,25 @@ const Chat = () => {
                     {/* <img src="./camera.png" alt="" />
                     <img src="./mic.png" alt="" /> */}
                 </div>
-                <input type="text" placeholder="Type a Message..." value={text} onChange={(e) => setText(e.target.value)} disabled={isCurrentUserBlocked || isReceiverBlocked} />
+                <textarea
+                    ref={textareaRef}
+                    className="messageInput"
+                    placeholder="Type a Message..."
+                    value={text}
+                    rows={1}
+                    onChange={(e) => setText(e.target.value)}
+                    onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                            e.preventDefault();
+                            handleSend();
+                        }
+                    }}
+                    disabled={isCurrentUserBlocked || isReceiverBlocked}
+                />
                 <div className="emoji">
-                    <img src="./emoji.png" alt="" onClick={() => setOpen((prev) => !prev)} />
+                    <div className="emojiToggleIcon" onClick={() => setOpen((prev) => !prev)}>🙂</div>
                     <div className="picker">
-                        <EmojiPicker open={open} onEmojiClick={handleEmoji} style={{ width: '250px', height: '350px' }} />
+                        <EmojiPicker open={open} onEmojiClick={handleEmoji} theme="dark" style={{ width: '250px', height: '350px' }} />
                     </div>
 
                 </div>
@@ -211,7 +247,7 @@ const Chat = () => {
                 )}
                 <button className="sendButton" onClick={handleSend} disabled={isCurrentUserBlocked || isReceiverBlocked}>Send</button>
             </div>
-        </div >
+        </div>
     )
 }
 
