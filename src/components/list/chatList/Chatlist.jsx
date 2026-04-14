@@ -75,7 +75,11 @@ const Chatlist = ({ setMobileView }) => {
     const filteredChat = chats.filter((c) => {
         // If the user document is missing, we skip it so the app doesn't die
         if (!c.user) return false;
-        return c.user.username.toLowerCase().includes(input.toLowerCase());
+        const searchInput = input.toLowerCase();
+        return (
+            (c.user.username && c.user.username.toLowerCase().includes(searchInput)) ||
+            (c.user.fullName && c.user.fullName.toLowerCase().includes(searchInput))
+        );
     });
 
     return (
@@ -99,12 +103,12 @@ const Chatlist = ({ setMobileView }) => {
                     {/* Optional chaining ?. ensures we don't crash on render */}
                     <img src={chat.user?.avatar || "./avatar.png"} alt="" />
                     <div className="texts">
-                        <span>{chat.user?.username || "Deleted User"}</span>
+                        <span>{chat.user?.fullName || chat.user?.username || "Deleted User"}</span>
                         <p>{chat.lastMessage}</p>
                     </div>
                 </div>
             ))}
-            {addMode && <AddUser />}
+            {addMode && <AddUser onClose={() => setAddMode(false)} />}
         </div>
     )
 }

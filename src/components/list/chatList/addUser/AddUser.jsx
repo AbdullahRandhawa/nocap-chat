@@ -3,10 +3,11 @@ import "./addUser.css"
 import { useState } from "react"
 import { db } from "../../../../lib/firebase"
 import { useUserStore } from "../../../../lib/userStore"
-const AddUser = () => {
+const AddUser = ({ onClose }) => {
 
     const [users, setUsers] = useState([])
     const [loading, setLoading] = useState(false)
+    const [isAdding, setIsAdding] = useState(false)
 
     const { currentUser } = useUserStore()
 
@@ -15,13 +16,13 @@ const AddUser = () => {
         e.preventDefault()
 
         const formData = new FormData(e.target)
-        const username = formData.get("username")
+        const name = formData.get("name")
 
-        performSearch(username)
+        performSearch(name)
     }
 
-    const performSearch = async (username) => {
-        if (!username.trim()) {
+    const performSearch = async (name) => {
+        if (!name.trim()) {
             setUsers([])
             return
         }
@@ -32,13 +33,16 @@ const AddUser = () => {
             const userRef = collection(db, "users")
             const querySnapShot = await getDocs(userRef)
 
-            const searchTerm = username.toLowerCase()
+            const searchTerm = name.toLowerCase()
 
             const foundUsers = querySnapShot.docs
                 .map(doc => doc.data())
                 .filter(user =>
                     user.id !== currentUser.id &&
-                    user.username.toLowerCase().includes(searchTerm)
+                    (
+                        (user.username && user.username.toLowerCase().includes(searchTerm)) ||
+                        (user.fullName && user.fullName.toLowerCase().includes(searchTerm))
+                    )
                 )
 
             setUsers(foundUsers)
@@ -51,12 +55,15 @@ const AddUser = () => {
     }
 
     const handleInputChange = (e) => {
-        const username = e.target.value
-        performSearch(username)
+        const name = e.target.value
+        performSearch(name)
     }
 
 
     const handleAdd = async (selectedUser) => {
+        if (isAdding) return;
+        setIsAdding(true);
+
         const chatRef = collection(db, "chats")
         const userChatsRef = collection(db, "userchats")
 
@@ -132,10 +139,13 @@ const AddUser = () => {
 
             setUsers([])
             console.log("Chat created with ID:", newChatRef.id)
+            if (onClose) onClose()
 
         } catch (err) {
             console.error("Error adding chat:", err)
             alert("Error: " + err.message)
+        } finally {
+            setIsAdding(false)
         }
 
     }
@@ -147,8 +157,8 @@ const AddUser = () => {
             <form onSubmit={handleSearch}>
                 <input
                     type="text"
-                    placeholder="Username"
-                    name="username"
+                    placeholder="Username or Full Name"
+                    name="name"
                     onChange={handleInputChange}
                 />
                 <button disabled={loading}>{loading ? "Searching..." : "Search"}</button>
@@ -159,9 +169,11 @@ const AddUser = () => {
                         <div key={user.id} className="user">
                             <div className="detail">
                                 <img src={user.avatar || "./avatar.png"} alt="" />
-                                <span>{user.username}</span>
+                                <span>{user.username} {user.fullName ? `(${user.fullName})` : ""}</span>
                             </div>
-                            <button onClick={() => handleAdd(user)}>Add</button>
+                            <button disabled={isAdding} onClick={() => handleAdd(user)}>
+                                {isAdding ? "Adding..." : "Add"}
+                            </button>
                         </div>
                     ))}
                 </div>

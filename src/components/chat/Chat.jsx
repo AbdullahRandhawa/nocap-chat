@@ -7,16 +7,13 @@ import { useChatStore } from "../../lib/chatStore"
 import { useUserStore } from "../../lib/userStore";
 import upload from "../../lib/cloudinary"
 
-const Chat = ({ setMobileView }) => {
+const Chat = ({ setMobileView, showBackButton = true, showInfoButton = true }) => {
 
     const [chat, setChat] = useState()
     const [open, setOpen] = useState(false)
     const [text, setText] = useState("")
-    const [attachment, setAttachment] = useState({
-        file: null,
-        url: "",
-        type: "" // "image" or "file"
-    });
+    const [isSending, setIsSending] = useState(false)
+    const [attachments, setAttachments] = useState([]);
 
     const { currentUser } = useUserStore()
     const { chatId, user, isCurrentUserBlocked, isReceiverBlocked } = useChatStore()
@@ -55,45 +52,69 @@ const Chat = ({ setMobileView }) => {
     }
 
     const handleFile = (e) => {
-        const selected = e.target.files[0];
-        if (selected) {
-            const isImg = selected.type.startsWith("image/");
-            setAttachment({
-                file: selected,
-                url: isImg ? URL.createObjectURL(selected) : "",
+        const files = Array.from(e.target.files);
+        const newAttachments = files.map(file => {
+            const isImg = file.type.startsWith("image/");
+            return {
+                file: file,
+                url: isImg ? URL.createObjectURL(file) : "",
                 type: isImg ? "image" : "file",
-                name: selected.name
-            });
-        }
+                name: file.name
+            };
+        });
+        setAttachments(prev => [...prev, ...newAttachments]);
+        e.target.value = null; // allow selecting the same file again
     };
-    const handleSend = async () => {
-        // Check if both text and the file are empty. If so, do nothing.
-        if (text === "" && !attachment.file) return;
 
-        let fileUrl = null;
+    const removeAttachment = (index) => {
+        setAttachments(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const handleSend = async () => {
+        if ((text === "" && attachments.length === 0) || isSending) return;
+
+        const currentText = text;
+        const currentAttachments = [...attachments];
+
+        setIsSending(true);
+
+        // Instantly clear inputs for immediate UI feedback
+        setAttachments([]);
+        setText("");
 
         try {
-            if (attachment.file) {
-                // This 'upload' function better handle resource_type: "auto" 
-                // or Cloudinary is going to reject your PDFs.
-                fileUrl = await upload(attachment.file);
-            }
+            // Upload all files in parallel
+            const uploadPromises = currentAttachments.map(async (att) => {
+                const url = await upload(att.file);
+                return { ...att, url };
+            });
+            const uploadedFiles = await Promise.all(uploadPromises);
 
-            const newMessage = {
-                senderId: currentUser.id,
-                text,
-                createdAt: new Date(),
-                // Only add these fields if a file actually exists
-                ...(fileUrl && {
-                    fileUrl,
-                    fileType: attachment.type, // "image" or "file"
-                    fileName: attachment.name
-                }),
-            };
+            const newMessages = [];
+            
+            // Add image/file bubbles first
+            uploadedFiles.forEach((file, index) => {
+                newMessages.push({
+                    senderId: currentUser.id,
+                    createdAt: new Date(Date.now() + index), // Add slight delay to order correctly
+                    fileUrl: file.url,
+                    fileType: file.type,
+                    fileName: file.name
+                });
+            });
+
+            // Add text bubble last
+            if (currentText) {
+                newMessages.push({
+                    senderId: currentUser.id,
+                    text: currentText,
+                    createdAt: new Date(Date.now() + uploadedFiles.length)
+                });
+            }
 
             // 1. Update the actual chat document
             await updateDoc(doc(db, "chats", chatId), {
-                messages: arrayUnion(newMessage)
+                messages: arrayUnion(...newMessages)
             });
 
             const userIds = [currentUser.id, user.id];
@@ -111,10 +132,13 @@ const Chat = ({ setMobileView }) => {
                     );
 
                     if (chatIndex !== -1) {
-                        // Logic for the 'Last Message' preview text
-                        let lastMsgText = text;
-                        if (!text && attachment.file) {
-                            lastMsgText = attachment.type === "image" ? "📷 Image" : `📁 ${attachment.name}`;
+                        let lastMsgText = currentText;
+                        if (!currentText && currentAttachments.length > 0) {
+                            if (currentAttachments.length === 1) {
+                                lastMsgText = currentAttachments[0].type === "image" ? "📷 Image" : `📁 ${currentAttachments[0].name}`;
+                            } else {
+                                lastMsgText = `📸 ${currentAttachments.length} files`;
+                            }
                         }
 
                         userChatsData.chats[chatIndex].lastMessage = lastMsgText;
@@ -127,27 +151,21 @@ const Chat = ({ setMobileView }) => {
                     }
                 }
             }
-
-            // 3. Reset the state so the user can send more trash
-            setAttachment({
-                file: null,
-                url: "",
-                type: "",
-                name: ""
-            });
-
-            setText("");
-
         } catch (err) {
-            console.error("Failed to send message. You probably broke the Cloudinary config:", err);
+            console.error("Failed to send message:", err);
+            // Optional: If it failed, put the user's text back in case they want to retry
+            setText(currentText);
+            setAttachments(currentAttachments);
+        } finally {
+            setIsSending(false);
         }
     };
 
 
     if (!chatId) {
         return (
-            <div className="chat" style={{ justifyContent: 'center', alignItems: 'center' }}>
-                <p style={{ color: 'var(--text-muted)', fontSize: '1.2rem' }}>Select a chat to start messaging.</p>
+            <div className="chat chat-empty">
+                <p className="chat-empty-text">Select a chat to start messaging.</p>
             </div>
         );
     }
@@ -155,23 +173,27 @@ const Chat = ({ setMobileView }) => {
     return (
         <div className="chat">
             <div className="top">
-                {/* Back button on the far left — mobile only */}
-                <button className="mobileBackButton" onClick={() => setMobileView && setMobileView("list")}>
-                    ←
-                </button>
+                {/* Back button on the far left */}
+                {showBackButton && (
+                    <button className="mobileBackButton" onClick={() => setMobileView && setMobileView("list")}>
+                        <i className="fa-solid fa-arrow-left-long" style={{ color: "var(--text-dark)" }}></i>
+                    </button>
+                )}
 
                 {/* User info in the center */}
                 <div className="user">
                     <img src={user?.avatar || "./avatar.png"} alt="" />
                     <div className="texts">
-                        <span>{user?.username}</span>
+                        <span>{user?.fullName || user?.username}</span>
                     </div>
                 </div>
 
-                {/* Info button on the far right — mobile only */}
-                <button className="mobileInfoButton" onClick={() => setMobileView && setMobileView("detail")}>
-                    ⋮
-                </button>
+                {/* Info button on the far right */}
+                {showInfoButton && (
+                    <button className="mobileInfoButton" onClick={() => setMobileView && setMobileView("detail")}>
+                        ⋮
+                    </button>
+                )}
             </div>
 
             <div className="center">
@@ -182,16 +204,24 @@ const Chat = ({ setMobileView }) => {
                                 message.fileType === "image" ? (
                                     <img src={message.fileUrl} alt="" />
                                 ) : (
-                                    <a href={message.fileUrl} target="_blank" rel="noreferrer" className="message fileAttachment">
-                                        <span style={{
-                                            display: "flex",
-                                            backgroundColor: "white",
-                                            padding: "10px 20px",
-                                            borderRadius: "10px",
-                                            fontSize: "14px",
-                                            color: "black",
-                                            textDecorationColor: "white"
-                                        }}>{message.fileName || "Download File"}</span>
+                                    <a href={message.fileUrl} target="_blank" rel="noreferrer" className="file-attachment">
+                                        <div className={`file-attachment-card ${message.senderId === currentUser?.id ? "own" : "other"}`}>
+                                            <div className="file-icon-box">
+                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                                                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                                                    <polyline points="10 9 9 9 8 9"></polyline>
+                                                </svg>
+                                            </div>
+                                            <div className="file-info">
+                                                <span className="file-name">
+                                                    {message.fileName || "Download File"}
+                                                </span>
+                                                <span className="file-subtext">Click to open file</span>
+                                            </div>
+                                        </div>
                                     </a>
                                 )
                             )}
@@ -202,14 +232,29 @@ const Chat = ({ setMobileView }) => {
                 <div ref={endRef}></div>
             </div>
 
+            {attachments.length > 0 && !isSending && (
+                <div className="attachmentsPreviewContainer">
+                    {attachments.map((att, index) => (
+                        <div className="previewItem" key={index}>
+                            {att.type === "image" ? (
+                                <img src={att.url} alt="preview" className="previewItemImg" />
+                            ) : (
+                                <div className="filePreviewBox">
+                                    <img src="./file-solid-full.svg" alt="file" />
+                                    <span className="fileName">{att.name}</span>
+                                </div>
+                            )}
+                            <button className="removeImg" onClick={() => removeAttachment(index)}>✕</button>
+                        </div>
+                    ))}
+                </div>
+            )}
             <div className="bottom">
                 <div className="icons">
                     <label htmlFor="file" title="Share files and pictures">
                         <img src="./img.png" alt="" />
                     </label>
-                    <input type="file" id="file" style={{ display: "none" }} onChange={handleFile} />
-                    {/* <img src="./camera.png" alt="" />
-                    <img src="./mic.png" alt="" /> */}
+                    <input type="file" id="file" className="hidden-file-input" multiple onChange={handleFile} disabled={isSending} />
                 </div>
                 <textarea
                     ref={textareaRef}
@@ -224,28 +269,19 @@ const Chat = ({ setMobileView }) => {
                             handleSend();
                         }
                     }}
-                    disabled={isCurrentUserBlocked || isReceiverBlocked}
+                    disabled={isCurrentUserBlocked || isReceiverBlocked || isSending}
                 />
                 <div className="emoji">
                     <div className="emojiToggleIcon" onClick={() => setOpen((prev) => !prev)}>🙂</div>
                     <div className="picker">
-                        <EmojiPicker open={open} onEmojiClick={handleEmoji} theme="dark" style={{ width: '250px', height: '350px' }} />
+                        <EmojiPicker open={open} onEmojiClick={handleEmoji} theme="dark" width={250} height={350} />
                     </div>
 
                 </div>
-                {attachment.file && (
-                    <div className="imagePreview">
-                        {attachment.type === "image" ? (
-                            <img src={attachment.url} alt="preview" />
-                        ) : (
 
-                            <img src="./file-solid-full.svg" alt="file"></img>
-
-                        )}
-                        <button className="removeImg" onClick={() => setAttachment({ file: null, url: "", type: "" })}>✕</button>
-                    </div>
-                )}
-                <button className="sendButton" onClick={handleSend} disabled={isCurrentUserBlocked || isReceiverBlocked}>Send</button>
+                <button className="sendButton" onClick={handleSend} disabled={isCurrentUserBlocked || isReceiverBlocked || isSending}>
+                    {isSending ? "Sending..." : "Send"}
+                </button>
             </div>
         </div>
     )

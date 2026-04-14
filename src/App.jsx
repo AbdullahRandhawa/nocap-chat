@@ -52,9 +52,13 @@ const App = () => {
   // 3. STATE-BASED MOBILE TOGGLE
   const [mobileView, setMobileView] = useState("list"); // "list", "chat", "detail"
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [isTablet, setIsTablet] = useState(window.innerWidth > 768 && window.innerWidth <= 1024);
 
   useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+      setIsTablet(window.innerWidth > 768 && window.innerWidth <= 1024);
+    };
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
@@ -144,9 +148,33 @@ const App = () => {
     <div className={`container ${chatId ? 'chat-active' : ''}`}>
       {currentUser ? (
         <>
-          {(!isMobile || mobileView === "list") && <List setMobileView={setMobileView} />}
-          {(!isMobile || mobileView === "chat") && <Chat setMobileView={setMobileView} />}
-          {(!isMobile || mobileView === "detail") && <Detail setMobileView={setMobileView} />}
+          {(!isMobile && !isTablet) && (
+            <>
+              <List setMobileView={setMobileView} />
+              <Chat setMobileView={setMobileView} showBackButton={false} showInfoButton={false} />
+              <Detail setMobileView={setMobileView} />
+            </>
+          )}
+
+          {isTablet && (
+            <>
+              {mobileView !== "detail" && <List setMobileView={setMobileView} />}
+              <Chat 
+                setMobileView={setMobileView} 
+                showBackButton={mobileView === "detail"} 
+                showInfoButton={mobileView !== "detail"} 
+              />
+              {mobileView === "detail" && <Detail setMobileView={setMobileView} />}
+            </>
+          )}
+
+          {isMobile && (
+            <>
+              {mobileView === "list" && <List setMobileView={setMobileView} />}
+              {mobileView === "chat" && <Chat setMobileView={setMobileView} showBackButton={true} showInfoButton={true} />}
+              {mobileView === "detail" && <Detail setMobileView={setMobileView} />}
+            </>
+          )}
         </>
       ) : (
         <Login />

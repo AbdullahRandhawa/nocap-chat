@@ -1,11 +1,22 @@
 .chat {
     flex: 2;
+    min-width: 0;
     display: flex;
     flex-direction: column;
     min-height: 0;
     border-left: 1px solid var(--bg-tertiary);
     border-right: 1px solid var(--bg-tertiary);
     background-color: transparent;
+
+    &.chat-empty {
+        justify-content: center;
+        align-items: center;
+
+        .chat-empty-text {
+            color: var(--text-muted);
+            font-size: 1.2rem;
+        }
+    }
 
     /* ── TOP BAR ─────────────────────────────────────────── */
     .top {
@@ -17,11 +28,15 @@
         border-bottom: 1px solid var(--bg-tertiary);
         background-color: var(--bg-main);
         flex-shrink: 0;
+        position: sticky;
+        top: 0;
+        z-index: 20;
 
-        /* Back (←) and Info (⋮) — HIDDEN on desktop */
         .mobileBackButton,
         .mobileInfoButton {
-            display: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             background: none;
             border: none;
             color: var(--text-dark);
@@ -35,16 +50,6 @@
 
             &:hover {
                 background-color: var(--bg-secondary);
-            }
-        }
-
-        @media screen and (max-width: 768px) {
-
-            .mobileBackButton,
-            .mobileInfoButton {
-                display: flex;
-                align-items: center;
-                justify-content: center;
             }
         }
 
@@ -145,6 +150,7 @@
 
                 img {
                     max-width: 100%;
+                    max-height: 300px;
                     min-width: 160px;
                     height: auto;
                     object-fit: cover;
@@ -172,6 +178,156 @@
                     font-size: 11px;
                     color: var(--text-muted);
                     align-self: flex-start;
+                }
+
+                .file-attachment {
+                    text-decoration: none;
+                    display: inline-block;
+                    margin: 5px 0;
+
+                    .file-attachment-card {
+                        display: flex;
+                        align-items: center;
+                        gap: 12px;
+                        padding: 10px 15px;
+                        background-color: rgba(255, 255, 255, 0.95);
+                        border-radius: 12px;
+                        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+                        min-width: 200px;
+                        box-sizing: border-box;
+
+                        /* Default (other) */
+                        border: 1.5px solid rgb(180, 178, 178);
+                        border-left: 4px solid rgba(255, 43, 94, 0.8);
+
+                        &.own {
+                            border: 1.5px solid rgba(255, 43, 94, 0.8);
+                            border-left: 1.5px solid rgba(255, 43, 94, 0.8);
+                        }
+
+                        .file-icon-box {
+                            background-color: rgba(255, 43, 94, 0.9);
+                            border-radius: 8px;
+                            padding: 10px;
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            flex-shrink: 0;
+                        }
+
+                        .file-info {
+                            display: flex;
+                            flex-direction: column;
+
+                            .file-name {
+                                font-size: 0.95rem;
+                                color: #1e293b;
+                                font-weight: 600;
+                                white-space: nowrap;
+                                overflow: hidden;
+                                text-overflow: ellipsis;
+                                max-width: 180px;
+                            }
+
+                            .file-subtext {
+                                font-size: 0.75rem;
+                                color: #64748b;
+                                align-self: flex-start;
+                                margin-top: 0;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /* ── STAGED ATTACHMENTS PREVIEW ───────────────────────── */
+    .attachmentsPreviewContainer {
+        display: flex;
+        gap: 12px;
+        padding: 12px 20px;
+        background-color: #e4e6ea;
+        border-top: 1px solid var(--bg-tertiary);
+        overflow-x: auto;
+        flex-shrink: 0;
+
+        &::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background: var(--bg-tertiary);
+            border-radius: 10px;
+        }
+
+        .previewItem {
+            position: relative;
+            flex-shrink: 0;
+            width: 64px;
+            height: 64px;
+
+            .previewItemImg {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                border-radius: 8px;
+                border: 2px solid var(--primary);
+            }
+
+            .filePreviewBox {
+                width: 100%;
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                background-color: var(--bg-main);
+                border-radius: 8px;
+                border: 2px solid var(--primary);
+                padding: 4px;
+                text-align: center;
+                box-sizing: border-box;
+
+                img {
+                    width: 20px;
+                    height: 20px;
+                    margin-bottom: 2px;
+                    opacity: 0.7;
+                    filter: invert(0.2);
+                }
+
+                .fileName {
+                    font-size: 9px;
+                    color: var(--text-dark);
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    max-width: 100%;
+                }
+            }
+
+            .removeImg {
+                position: absolute;
+                top: -8px;
+                right: -8px;
+                background: var(--primary);
+                color: white;
+                border: none;
+                border-radius: 50%;
+                width: 20px;
+                height: 20px;
+                cursor: pointer;
+                font-size: 11px;
+                font-weight: bold;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: background-color var(--transition-fast);
+                box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+
+                &:hover {
+                    background-color: var(--primary-hover);
                 }
             }
         }
@@ -215,6 +371,10 @@
                     }
                 }
             }
+        }
+
+        .hidden-file-input {
+            display: none;
         }
 
         /* Auto-grow textarea — no scrollbar */
@@ -262,6 +422,7 @@
             display: flex;
             align-items: center;
             position: relative;
+            margin-bottom: 2px;
 
             .emojiToggleIcon {
                 display: flex;
@@ -292,49 +453,15 @@
             }
         }
 
-        .imagePreview {
-            position: relative;
-            width: 56px;
-            height: 56px;
-            flex-shrink: 0;
 
-            img {
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-                border-radius: 8px;
-                border: 2px solid var(--primary);
-            }
-        }
-
-        .removeImg {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
-            font-size: 11px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background-color var(--transition-fast);
-
-            &:hover {
-                background-color: var(--primary-hover);
-            }
-        }
 
         .sendButton {
             background-color: var(--primary);
             color: white;
+            align-items: center;
             border: none;
-            padding: 10px 20px;
+            padding: 10px 18px;
+            margin-bottom: 4px;
             border-radius: 20px;
             cursor: pointer;
             font-size: 14px;
