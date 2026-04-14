@@ -53,7 +53,6 @@ const Detail = ({ setMobileView }) => {
                     <button onClick={handleBlock} disabled={isCurrentUserBlocked}>
                         {isCurrentUserBlocked ? "You Are Blocked" : isReceiverBlocked ? "User Blocked " : "Block User"}
                     </button>
-                    <button className="logout" onClick={() => auth.signOut()}>Log Out</button>
                 </div>
             </div>
         </div>
