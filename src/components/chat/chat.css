@@ -23,7 +23,7 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 12px 20px;
+        padding: 0.4rem 1.25rem;
         gap: 12px;
         border-bottom: 1px solid var(--bg-tertiary);
         background-color: var(--bg-main);
@@ -324,7 +324,7 @@
                 align-items: center;
                 justify-content: center;
                 transition: background-color var(--transition-fast);
-                box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 
                 &:hover {
                     background-color: var(--primary-hover);

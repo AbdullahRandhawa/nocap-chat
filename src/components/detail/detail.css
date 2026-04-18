@@ -11,7 +11,7 @@
     .detailHeader {
         display: none;
         align-items: center;
-        padding: 12px 20px;
+        padding: 0.4rem 1.25rem;
         border-bottom: 1px solid var(--bg-tertiary);
         background-color: var(--bg-main);
         position: sticky;
