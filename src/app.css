@@ -28,7 +28,10 @@
 /* Tablet Layout styles */
 @media (min-width: 769px) and (max-width: 1024px) {
     .container {
-        width: 95vw;
-        height: 95vh;
+        width: 100vw;
+        height: 100vh;
+        border-radius: 0;
+        box-shadow: none;
+        border: none;
     }
 }

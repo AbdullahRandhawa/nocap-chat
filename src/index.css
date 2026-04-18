@@ -70,15 +70,15 @@ h6 {
 }
 
 .container {
-  width: 90vw;
-  height: 90vh;
+  width: 100vw;
+  height: 100vh;
   background-color: var(--bg-main);
-  border-radius: var(--radius-xl);
+  border-radius: 0;
   display: flex;
   overflow: hidden;
   color: var(--text-dark);
-  box-shadow: var(--shadow-lg);
-  border: 1px solid var(--bg-tertiary);
+  box-shadow: none;
+  border: none;
 }
 
 /* Full-screen override on mobile — no wasted margins */
