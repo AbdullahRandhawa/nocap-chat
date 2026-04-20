@@ -20,6 +20,31 @@ const App = () => {
 
   const containerRef = useRef(null)
 
+  // 0. THEME SYNC (New Logic)
+  useEffect(() => {
+    const applyTheme = (themeStr) => {
+      document.documentElement.setAttribute('data-theme', themeStr);
+    };
+
+    // a. Initial Load via URL param
+    const searchParams = new URLSearchParams(window.location.search);
+    const initialTheme = searchParams.get('theme');
+    if (initialTheme) {
+      applyTheme(initialTheme);
+    }
+
+    // b. Real-time Parent Sync Listener
+    const handleMessage = (event) => {
+      // Allow syncing if the parent Rentlyst app hits the dark-mode toggle
+      if (event.data && event.data.type === 'THEME_CHANGE') {
+        applyTheme(event.data.theme);
+      }
+    };
+    
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
   // 1. SILENT LOGIN SENSOR (New Logic)
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
