@@ -14,8 +14,6 @@
         padding: 0.4rem 1.25rem;
         border-bottom: 1px solid var(--bg-tertiary);
         background-color: var(--bg-main);
-        position: sticky;
-        top: 0;
         z-index: 20;
 
         .mobileBackButton {

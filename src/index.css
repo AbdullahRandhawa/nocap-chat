@@ -54,6 +54,55 @@
   --shadow-lg: 0 16px 32px rgba(0, 0, 0, 0.55);
 }
 
+/* Component Specific Overrides for Dark Mode */
+:root[data-theme="dark"] .chat .center,
+:root[data-theme="dark"] .chat .bottom,
+:root[data-theme="dark"] .chat .attachmentsPreviewContainer {
+  background-color: var(--bg-secondary) !important;
+}
+
+:root[data-theme="dark"] .chat .center .message .texts p {
+  background-color: var(--bg-main) !important;
+  color: var(--text-dark) !important;
+  border-color: var(--bg-tertiary) !important;
+}
+
+:root[data-theme="dark"] .chat .center .message.own .texts p {
+  background: linear-gradient(135deg, #ff385c 0%, #e0294d 100%) !important;
+  color: #fff !important;
+}
+
+:root[data-theme="dark"] .detail .user .userTopRow .userNameBox h2,
+:root[data-theme="dark"] .detail .info.scrollableInfo h3 {
+  color: var(--text-dark) !important;
+}
+
+:root[data-theme="dark"] .detail .user .userTopRow .userNameBox .userTag,
+:root[data-theme="dark"] .detail .user .userBio {
+  color: var(--text-muted) !important;
+}
+
+:root[data-theme="dark"] .chatList .search .searchBar img {
+  filter: opacity(0.8) invert(1) brightness(2) !important;
+}
+
+:root[data-theme="dark"] .detail .info.scrollableInfo .fileList .fileItem {
+  background-color: var(--bg-tertiary) !important;
+  color: var(--text-dark) !important;
+}
+
+:root[data-theme="dark"] .detail .info.scrollableInfo .fileList .fileItem:hover {
+  background-color: var(--bg-secondary) !important;
+}
+
+:root[data-theme="dark"] .chat .center .message .texts .file-attachment .file-attachment-card {
+  background-color: var(--bg-main) !important;
+}
+
+:root[data-theme="dark"] .chat .center .message .texts .file-attachment .file-attachment-card .file-info .file-name {
+  color: var(--text-dark) !important;
+}
+
 * {
   margin: 0;
   padding: 0;
