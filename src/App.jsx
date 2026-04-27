@@ -95,8 +95,17 @@ const App = () => {
       const searchParams = new URLSearchParams(window.location.search);
       const receiverId = searchParams.get("receiverId");
 
+      console.log("Checking URL for receiverId:", receiverId, "Current User:", currentUser?.id);
+
       // Only run if we have a receiverId, a logged-in user, and it's not ourselves
-      if (receiverId && currentUser && currentUser.id !== receiverId) {
+      if (receiverId && currentUser) {
+        toast.info("Processing receiver: " + receiverId);
+        if (currentUser.id === receiverId) {
+            toast.info("You cannot message yourself.");
+            window.history.replaceState(null, "", window.location.pathname);
+            return;
+        }
+
         try {
           // 1. Check if a chat with this owner already exists in your list
           const userChatsRef = doc(db, "userchats", currentUser.id);
@@ -136,7 +145,7 @@ const App = () => {
               chats: arrayUnion({ ...chatData, receiverId: receiverId })
             }, { merge: true });
 
-            changeChat(newChatRef.id, receiverSnap.data());
+            changeChat(newChatRef.id, { ...receiverSnap.data(), id: receiverId });
             setMobileView("chat");
           };
 
@@ -146,7 +155,7 @@ const App = () => {
 
             if (existingChat) {
               // Chat already exists — just open it
-              changeChat(existingChat.chatId, receiverSnap.data());
+              changeChat(existingChat.chatId, { ...receiverSnap.data(), id: receiverId });
               setMobileView("chat");
             } else {
               // User exists but no chat with this person yet — create it
@@ -161,7 +170,7 @@ const App = () => {
           window.history.replaceState(null, "", window.location.pathname);
         } catch (err) {
           console.error("Auto-chat failed:", err);
-          toast.error("Something went wrong opening the chat.");
+          toast.error("Something went wrong opening the chat: " + err.message);
         }
       }
     };
