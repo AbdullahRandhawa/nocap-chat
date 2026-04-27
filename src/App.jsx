@@ -102,58 +102,62 @@ const App = () => {
           const userChatsRef = doc(db, "userchats", currentUser.id);
           const userChatsSnap = await getDoc(userChatsRef);
 
+          // Check if the receiver user actually exists in Firebase first
+          const receiverSnap = await getDoc(doc(db, "users", receiverId));
+          if (!receiverSnap.exists()) {
+            console.log("Receiver does not exist in Firestore!");
+            toast.error("User not found! They might have been deleted.");
+            window.history.replaceState(null, "", window.location.pathname);
+            return;
+          }
+
+          // Helper: create a new chat and open it
+          const createAndOpenChat = async () => {
+            const newChatRef = doc(collection(db, "chats"));
+            await setDoc(newChatRef, {
+              createdAt: serverTimestamp(),
+              messages: [],
+            });
+
+            const chatData = {
+              chatId: newChatRef.id,
+              lastMessage: "",
+              isSeen: true,
+              updatedAt: Date.now(),
+            };
+
+            // Update the receiver's chat list (create doc if it doesn't exist)
+            await setDoc(doc(db, "userchats", receiverId), {
+              chats: arrayUnion({ ...chatData, receiverId: currentUser.id })
+            }, { merge: true });
+
+            // Update current user's chat list (create doc if it doesn't exist)
+            await setDoc(doc(db, "userchats", currentUser.id), {
+              chats: arrayUnion({ ...chatData, receiverId: receiverId })
+            }, { merge: true });
+
+            changeChat(newChatRef.id, receiverSnap.data());
+            setMobileView("chat");
+          };
+
           if (userChatsSnap.exists()) {
             const chats = userChatsSnap.data().chats || [];
             const existingChat = chats.find(c => c.receiverId === receiverId);
 
             if (existingChat) {
-              // If it exists, just open the chat window
-              changeChat(existingChat.chatId, { id: receiverId });
-              setMobileView("chat"); // Auto-open chat view on mobile
+              // Chat already exists — just open it
+              changeChat(existingChat.chatId, receiverSnap.data());
+              setMobileView("chat");
             } else {
-              // 2. CHECK IF USER EXISTS before trying to add
-              const receiverSnap = await getDoc(doc(db, "users", receiverId));
-
-              if (!receiverSnap.exists()) {
-                console.log("Receiver does not exist in Firestore!");
-                // --- ADDED POPUP MESSAGE ---
-                toast.error("User not found! They might have been deleted.");
-
-                // Clean the URL so the error doesn't repeat on refresh
-                window.history.replaceState(null, "", window.location.pathname);
-                return; // Stop the logic here
-              }
-
-              // 3. If user exists, create the chat (using your handleAdd logic)
-              const newChatRef = doc(collection(db, "chats"));
-              await setDoc(newChatRef, {
-                createdAt: serverTimestamp(),
-                messages: [],
-              });
-
-              const chatData = {
-                chatId: newChatRef.id,
-                lastMessage: "",
-                updatedAt: Date.now(),
-              };
-
-              // Update the Owner's chat list
-              await updateDoc(doc(db, "userchats", receiverId), {
-                chats: arrayUnion({ ...chatData, receiverId: currentUser.id })
-              });
-
-              // Update your (the current user's) chat list
-              await updateDoc(doc(db, "userchats", currentUser.id), {
-                chats: arrayUnion({ ...chatData, receiverId: receiverId })
-              });
-
-              // Open the newly created chat
-              changeChat(newChatRef.id, receiverSnap.data());
-              setMobileView("chat"); // Auto-open chat view on mobile
+              // User exists but no chat with this person yet — create it
+              await createAndOpenChat();
             }
+          } else {
+            // Current user has no userchats document at all — create it and the chat
+            await createAndOpenChat();
           }
 
-          // 4. Clean the URL so it doesn't try to add them again on refresh
+          // Clean the URL so it doesn't trigger again on refresh
           window.history.replaceState(null, "", window.location.pathname);
         } catch (err) {
           console.error("Auto-chat failed:", err);

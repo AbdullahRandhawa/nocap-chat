@@ -27,7 +27,7 @@ export const useUserStore = create((set) => ({
                 if (docSnap.exists()) {
                     console.log("Document data updated:", docSnap.data());
                     set({
-                        currentUser: docSnap.data(),
+                        currentUser: { ...docSnap.data(), id: docSnap.id },
                         isLoading: false,
                     });
                     console.log("User set successfully");
