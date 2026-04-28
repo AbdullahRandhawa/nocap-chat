@@ -92,7 +92,6 @@ const App = () => {
 
       // Only run if we have a receiverId, a logged-in user, and it's not ourselves
       if (receiverId && currentUser) {
-        toast.info("Processing receiver: " + receiverId);
         if (currentUser.id === receiverId) {
             toast.info("You cannot message yourself.");
             window.history.replaceState(null, "", window.location.pathname);
