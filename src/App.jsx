@@ -3,7 +3,7 @@ import Chat from "./components/chat/Chat"
 import Detail from "./components/detail/Detail"
 import Notification from "./components/notification/Notification"
 import "./app.css"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { onAuthStateChanged, signInWithCustomToken } from "firebase/auth"
 import { auth } from "./lib/firebase"
 import { useUserStore } from "./lib/userStore"
@@ -213,7 +213,7 @@ const App = () => {
             <div className="accessDeniedIcon">🔒</div>
             <h2>Access Restricted</h2>
             <p>This messenger is only accessible through <strong>Rentlyst</strong>. Please log in from the main platform.</p>
-            <a href="https://rentlyst.online" className="accessDeniedBtn">
+            <a href="https://rentlyst.online" className="accessDeniedBtn" target="_top">
               Go to Rentlyst →
             </a>
           </div>
