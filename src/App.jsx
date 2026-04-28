@@ -1,16 +1,14 @@
-import Login from "./components/login/Login"
 import List from "./components/list/List"
 import Chat from "./components/chat/Chat"
 import Detail from "./components/detail/Detail"
 import Notification from "./components/notification/Notification"
 import "./app.css"
-import { useEffect, useState, useRef } from "react"
-import { onAuthStateChanged, signInWithCustomToken } from "firebase/auth" // Added signInWithCustomToken
+import { useEffect, useState } from "react"
+import { onAuthStateChanged, signInWithCustomToken } from "firebase/auth"
 import { auth } from "./lib/firebase"
 import { useUserStore } from "./lib/userStore"
 import { useChatStore } from "./lib/chatStore"
-import Cookies from "js-cookie" // Added this to read the cookie
-import { doc, getDoc, setDoc, updateDoc, arrayUnion, collection, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc, setDoc, arrayUnion, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "./lib/firebase";
 import { toast } from "react-toastify";
 
@@ -45,22 +43,17 @@ const App = () => {
     return () => window.removeEventListener('message', handleMessage);
   }, []);
 
-  // 1. SILENT LOGIN SENSOR (New Logic)
+  // 1. SILENT LOGIN — URL token only (cookie fallback removed — custom tokens expire in 1hr)
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
     const urlToken = searchParams.get('fbToken');
-    const cookieToken = Cookies.get('fbToken');
-    const token = urlToken || cookieToken;
 
-    // If we have a token from LocaStay but Firebase hasn't logged us in yet
-    if (token && !auth.currentUser) {
-      console.log("LocaStay token found! Authenticating...");
-      signInWithCustomToken(auth, token).catch((err) => {
+    if (urlToken && !auth.currentUser) {
+      signInWithCustomToken(auth, urlToken).catch((err) => {
         console.error("Auto-login failed:", err.message);
-        Cookies.remove('fbToken'); // Wipe bad token
       });
     }
-  }, []); // Run once on mount
+  }, []);
 
   // 2. AUTH STATE LISTENER (Your existing logic)
   useEffect(() => {
@@ -215,7 +208,16 @@ const App = () => {
           )}
         </>
       ) : (
-        <Login />
+        <div className="accessDenied">
+          <div className="accessDeniedCard">
+            <div className="accessDeniedIcon">🔒</div>
+            <h2>Access Restricted</h2>
+            <p>This messenger is only accessible through <strong>Rentlyst</strong>. Please log in from the main platform.</p>
+            <a href="https://rentlyst.online" className="accessDeniedBtn">
+              Go to Rentlyst →
+            </a>
+          </div>
+        </div>
       )}
       <Notification />
     </div>

@@ -1,7 +1,7 @@
 import { arrayRemove, arrayUnion, doc, updateDoc, onSnapshot } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { useChatStore } from "../../lib/chatStore";
-import { auth, db } from "../../lib/firebase";
+import { db } from "../../lib/firebase";
 import { useUserStore } from "../../lib/userStore";
 import "./detail.css"
 
@@ -117,7 +117,7 @@ const Detail = ({ setMobileView }) => {
                     <button onClick={handleBlock} disabled={isCurrentUserBlocked}>
                         {isCurrentUserBlocked ? "You Are Blocked" : isReceiverBlocked ? "User Blocked" : "Block User"}
                     </button>
-                    <button className="logout" onClick={() => auth.signOut()}>Log Out</button>
+    
                 </div>
             </div>
         </div>
